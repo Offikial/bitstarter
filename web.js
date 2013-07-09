@@ -5,8 +5,7 @@ var Buffer = require('buffer').Buffer;
 var app = express.createServer(express.logger());
 
 app.get('/', function(request, response) {
-  var fileContents = fs.readFile('~/HW3/bitstarter/index.html').toString();
-  response.send(fileContents);
+  response.send(fs.readFile('~/HW3/bitstarter/index.html','utf-8'));
 });
 
 var port = process.env.PORT || 5000;
