@@ -6,7 +6,7 @@ var app = express.createServer(express.logger());
 
 app.get('/', function(request, response) {
   //response.send(fs.readFileSync('~/HW3/bitstarter/index.html','utf-8'));
-  var fileContent = fs.readFileSync('~/HW3/bitstarter/index.html','utf-8');
+  var fileContent = fs.readFileSync('index.html','utf-8');
   response.send(fileContent);
 });
 
