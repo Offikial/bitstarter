@@ -28,6 +28,21 @@ var cheerio = require('cheerio');
 
 var HTMLFILE_DEFAULT = "index.html";
 var CHECKSFILE_DEFAULT = "checks.json";
+var URL_DEFAULT = "url.html";
+
+var sys = require('util');
+var rest = require('restler');
+
+var restlerURL = function(URL){
+    rest.get(URL).on('complete', function(result) {
+	if (result instanceof Error) {
+	    sys.puts('Error: ' + result.message);
+	    this.retry(5000); // try again after 5 sec
+	} else {
+	    fs.writeFile("url.html", result + "\n");
+	}
+    });
+};
 
 var assertFileExists = function(infile){
     var instr = infile.toString();
@@ -35,6 +50,7 @@ var assertFileExists = function(infile){
 	console.log("%s does not exist. Exiting.", instr);
 	process.exit(1);
     }
+ 
     return instr;
 };
 
@@ -42,11 +58,12 @@ var cheerioHtmlFile = function(htmlfile){
     return cheerio.load(fs.readFileSync(htmlfile));
 };
 
-var loadChecks = function(checksifle){
+var loadChecks = function(checksfile){
     return JSON.parse(fs.readFileSync(checksfile));
 };
 
 var checkHtmlFile = function(htmlfile, checksfile){
+   
     $ = cheerioHtmlFile(htmlfile);
     var checks = loadChecks(checksfile).sort();
     var out = {};
@@ -66,10 +83,21 @@ if(require.main == module){
     program
         .option('-c, --checks <check_file>', 'Path to checks.json', clone(assertFileExists), CHECKSFILE_DEFAULT)
         .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT)
-        .parse(process.argv);
-    var checkJson = checkHtmlFile(program.file, program.checks);
+        .option('-u, --url <url>', 'Path to URL', true, HTMLFILE_DEFAULT)
+    .parse(process.argv);
+    
+    restlerURL(program.url);
+    var checkJson = null;
+    
+    if(program.url == "index.html"){
+	checkJson = checkHtmlFile(program.file, program.checks);
+    }
+    else{
+	checkJson = checkHtmlFile("url.html", program.checks);
+    }
     var outJson = JSON.stringify(checkJson, null, 4);
     console.log(outJson);
+    
 }else{
     exports.checkHtmlFile = checkHtmlFile;
 }
